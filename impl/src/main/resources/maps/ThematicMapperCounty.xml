@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ifactorconsulting.sc.impl.persistence.dao.sc.ThematicMapperCounty">
+    <!--    result maps     -->
+    <resultMap id="thematicDataMapCounty" type="com.ifactorconsulting.sc.persistence.ThematicRecord">
+        <id column="AREANAME" property="id"/>
+        <result column="VISIBLEAREANAME" property="visibleAreaName"/>
+        <result column="NUMOUTAGES" property="numOutages"/>
+        <result column="CUST_A" property="customersAffected"/>
+        <result column="CUST_S" property="customersServed"/>
+        <result column="ETR" property="estimatedRestoration" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+        <result column="OVERWRITTENETR" property="estimatedRestorationOverwritten"/>
+        <result column="OVERWRITTENCA" jdbcType="NUMERIC" javaType="java.lang.Long" property="customersAffectedOverwritten"/>
+        <result column="OVERWRITTENCOMMENT" property="comment"/>
+    </resultMap>
+
+    <select id="getThematicData" resultMap="thematicDataMapCounty">
+        SELECT
+            AREA.id                      AS ID,
+            UPPER(area.name)             AS AREANAME,
+            UPPER(area.name)             AS VISIBLEAREANAME,
+            RES.NUM_OUTAGES              AS NUMOUTAGES,
+            NVL(area.NBR_CUST_SERVED, 0) AS CUST_S,
+            NVL(RES.CUST_A, 0)           AS CUST_A,
+            RES.ETR                      AS ETR,
+            AREA.est_time_restore_over   AS OVERWRITTENETR,
+            AREA.customer_message        AS OVERWRITTENCOMMENT,
+            AREA.NBR_CUST_AFFECTED_OVER  AS OVERWRITTENCA
+        FROM
+            BOH_AREA AREA
+            LEFT JOIN BOH_OUTAGE_AREA_AFFECTED boaa ON(boaa.AREA_ID = AREA.ID)
+            LEFT JOIN (<include refid="CommonQueries.areaDetails"/>) RES ON RES.ID = AREA.ID
+        WHERE
+            UPPER(AREA.type) = 'COUNTY' AND
+            AREA.removed = '0'
+        GROUP BY
+            AREA.id,AREA.name, AREA.NBR_CUST_AFFECTED_OVER, RES.CUST_A, AREA.est_time_restore_over,
+            AREA.customer_message, AREA.NBR_CUST_SERVED, RES.ETR, RES.NUM_OUTAGES
+        ORDER BY
+            AREA.name
+    </select>
+</mapper>

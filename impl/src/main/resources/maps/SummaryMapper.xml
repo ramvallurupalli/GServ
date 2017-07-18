@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ifactorconsulting.sc.impl.persistence.dao.SummaryMapper">
+
+    <resultMap id="summaryInfo" type="com.ifactorconsulting.sc.persistence.SummaryDataRecord">
+        <result column="CUST_S" property="customersServed"/>
+        <result column="CUST_A" property="customersAffected"/>
+        <result column="ETR_OVERWRITTEN" property="etrOverwritten"/>
+        <result column="CA_OVERWRITTEN" property="caOverwritten"/>
+        <result column="NUM_OUTAGES" property="totalOutages"/>
+    </resultMap>
+
+    <select id="getSummaryInfo" resultMap="summaryInfo">
+        SELECT
+            SUM(NVL(area.nbr_cust_served, 0)) AS CUST_S,
+            SUM(RES.CUST_A)                   AS CUST_A,
+            MAX(area.est_time_restore_over)   AS ETR_OVERWRITTEN,
+            MAX(area.nbr_cust_affected_over)  AS CA_OVERWRITTEN,
+            outage_info.TOTAL_OUTAGES         AS TOTAL_OUTAGES
+        FROM boh_area area
+        LEFT JOIN (<include refid="CommonQueries.areaDetails"/>) RES ON RES.ID = area.ID
+        FULL OUTER JOIN
+            (
+            SELECT
+                COUNT(*) AS TOTAL_OUTAGES
+            FROM
+                (<include refid="CommonQueries.outages"/>)
+            ) outage_info ON 1 = 1
+        WHERE
+        UPPER(area.type) = 'COUNTY' AND
+           area.removed = '0'
+        GROUP BY outage_info.TOTAL_OUTAGES
+    </select>
+</mapper>

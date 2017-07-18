@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="CommonQueries">
+
+    <sql id="outages">
+        SELECT
+            OUTAGE.EXTERNAL_ID                AS ID,
+            bod.COORDINATES                   AS LAT_LON_LIST,
+            bod.STARTED_AT                    AS START_TIME,
+            bod.EST_TIME_RESTORE              AS ESTIMATED_RESTORATION_TIME,
+            OAA.CUST_A                        AS CURRENT_CUSTOMERS_TOTAL,
+            bod.CAUSE                         AS CAUSE,
+            bod.COMMENTS                      AS CUSTOMER_COMMENTS,
+            bod.CREW_STATUS                   AS CREW_STATUS
+        FROM
+            BOH_OUTAGE_DETAIL_VERSION_VW BODV
+            INNER JOIN BOH_OUTAGE_DETAIL BOD ON(BOD.ID = BODV.OUTAGE_DETAIL_ID)
+            INNER JOIN BOH_OUTAGE OUTAGE ON OUTAGE.ID = BOD.OUTAGE_ID
+            INNER JOIN
+                (
+                SELECT
+                    BOAA.OUTAGE_DETAIL_ID        AS ID,
+                    SUM(BOAA.NBR_CUST_AFFECTED)  AS CUST_A
+                FROM
+                    BOH_OUTAGE_AREA_AFFECTED BOAA
+                    INNER JOIN BOH_AREA A ON BOAA.AREA_ID = A.ID
+                WHERE
+                    BOAA.NBR_CUST_AFFECTED > 0
+                    AND A.TYPE = 'COUNTY'
+                    AND A.REMOVED = 0
+                GROUP BY
+                    BOAA.OUTAGE_DETAIL_ID
+                ) OAA ON OAA.ID = bod.ID
+        WHERE
+            BODV.VERSION_ID = #{versionId}
+            AND BOD.STATUS = 'ACTIVE'
+            AND BOD.COORDINATES IS NOT NULL
+    </sql>
+
+    <sql id="areaDetails">
+        SELECT
+             boaa.AREA_ID                        AS ID,
+             SUM(NVL(boaa.NBR_CUST_AFFECTED, 0)) AS CUST_A,
+             COUNT(*)                            AS NUM_OUTAGES,
+             MAX(bod.est_time_restore)           AS ETR
+        FROM BOH_OUTAGE_DETAIL_VERSION_VW bodv
+        LEFT JOIN boh_outage_detail bod ON (bod.id = bodv.OUTAGE_DETAIL_ID)
+        LEFT JOIN boh_outage_area_affected boaa ON (boaa.OUTAGE_DETAIL_ID = bod.ID)
+        WHERE  bodv.VERSION_ID = #{versionId}
+        AND bod.STATUS = 'ACTIVE'
+        AND boaa.NBR_CUST_AFFECTED > 0
+        GROUP BY boaa.AREA_ID
+    </sql>
+
+</mapper>

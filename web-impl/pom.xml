@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>sc-servlet</artifactId>
+        <groupId>com.ifactorconsulting.sc.gulfpower</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>web-impl</artifactId>
+    <packaging>war</packaging>
+
+    <name>web-impl</name>
+    <description>web implementation for Storm Center</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven-war-plugin.version>2.6</maven-war-plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ifactorconsulting.sc.gulfpower</groupId>
+            <artifactId>impl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ifactorconsulting.sc</groupId>
+            <artifactId>web</artifactId>
+            <scope>provided</scope>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.ifactorconsulting.sc</groupId>
+            <artifactId>web</artifactId>
+            <scope>runtime</scope>
+            <type>war</type>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven-war-plugin.version}</version>
+                <configuration>
+                    <overlays>
+                        <overlay>
+                            <groupId>com.ifactorconsulting.sc</groupId>
+                            <artifactId>web</artifactId>
+                        </overlay>
+                    </overlays>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

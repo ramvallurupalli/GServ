@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ifactorconsulting.sc.persistence.dao.scadmin.EventGenerationMapper">
+
+    <resultMap id="event" type="com.ifactorconsulting.sc.persistence.entity.event.Event">
+        <id column="ID" property="id"/>
+        <result column="EVENT_NAME" property="name"/>
+        <result column="DESCRIPTION" property="description"/>
+        <result column="REGION" property="region"/>
+        <result column="START_AT" property="start" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="END_AT" property="end" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="UPDATED_BY" property="userId"/>
+        <result column="CREATED_AT" property="createdAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="UPDATED_AT" property="updatedAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+    </resultMap>
+
+    <resultMap id="eventWithGenerations" type="com.ifactorconsulting.sc.persistence.entity.event.Event">
+        <id column="ID" property="id"/>
+        <result column="EVENT_NAME" property="name"/>
+        <result column="DESCRIPTION" property="description"/>
+        <result column="REGION" property="region"/>
+        <result column="START_AT" property="start" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="END_AT" property="end" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="UPDATED_BY" property="userId"/>
+        <result column="CREATED_AT" property="createdAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="UPDATED_AT" property="updatedAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <collection property="generations" ofType="com.ifactorconsulting.sc.persistence.entity.generations.Generation">
+            <id property="id" column="generation_id"/>
+            <result column="generation_timestamp_directory" property="timestampDirectory"/>
+            <result column="GENERATION_START" property="start" jdbcType="TIMESTAMP"
+                    typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+            <result column="GENERATION_END" property="end" jdbcType="TIMESTAMP"
+                    typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+            <result column="TRIGGERED_BY" property="triggeredBy"/>
+            <collection property="alert" ofType="com.ifactorconsulting.sc.persistence.entity.alerts.AlertHistory">
+                <id property="id" column="alert_id"/>
+                <result column="alert_timestamp_directory" property="timestampDirectory"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <resultMap id="generation" type="com.ifactorconsulting.sc.persistence.entity.generations.Generation">
+        <id column="ID" property="id"/>
+        <result column="generation_timestamp_directory" property="timestampDirectory"/>
+        <result column="GENERATION_START" property="start" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="GENERATION_END" property="end" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler"/>
+        <result column="TRIGGERED_BY" property="triggeredBy"/>
+        <collection property="alert" ofType="com.ifactorconsulting.sc.persistence.entity.alerts.AlertHistory">
+            <id property="id" column="alert_id"/>
+            <result column="alert_timestamp_directory" property="timestampDirectory"/>
+        </collection>
+    </resultMap>
+
+    <select id="getAllEvent" resultMap="event">
+        SELECT
+        TO_CHAR(ev.id) AS ID,
+        ev.name AS EVENT_NAME,
+        ev.description AS DESCRIPTION,
+        ev.region AS REGION,
+        ev.START_AT AS START_AT,
+        ev.END_AT AS END_AT,
+        ev.updated_by AS UPDATED_BY,
+        ev.created_at AS created_at,
+        ev.updated_at AS updated_at
+        FROM
+        EVENT ev
+        UNION ALL
+        SELECT
+        'current' AS ID,
+        'Current Event' AS EVENT_NAME,
+        '' AS DESCRIPTION,
+        '' AS REGION,
+        TRUNC((SYSDATE - 15)) AS START_AT,
+        NULL AS END_AT,
+        NULL AS UPDATED_BY,
+        NULL AS created_at,
+        NULL AS updated_at
+        FROM DUAL
+        ORDER BY START_AT DESC
+    </select>
+    <select id="getAllEventWithTimestamp" parameterType="org.joda.time.DateTime" resultMap="event">
+        SELECT
+        TO_CHAR(ev.id) AS ID,
+        ev.name AS EVENT_NAME,
+        ev.description AS DESCRIPTION,
+        ev.region AS REGION,
+        ev.START_AT AS START_AT,
+        ev.END_AT AS END_AT,
+        ev.updated_by AS UPDATED_BY,
+        ev.created_at AS created_at,
+        ev.updated_at AS updated_at
+        FROM
+        EVENT ev
+        WHERE
+        ev.updated_at > #{timestamp, jdbcType=TIMESTAMP, typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler}
+        ORDER BY ev.start_at DESC
+
+    </select>
+
+    <select id="getEventById" parameterType="long" resultMap="event">
+        SELECT
+        ev.id AS ID,
+        ev.name AS EVENT_NAME,
+        ev.description AS DESCRIPTION,
+        ev.region AS REGION,
+        ev.START_AT AS START_AT,
+        ev.END_AT AS END_AT,
+        ev.updated_by AS UPDATED_BY,
+        ev.created_at AS created_at,
+        ev.updated_at AS updated_at
+        FROM
+        EVENT ev
+        WHERE ev.id = #{id}
+    </select>
+
+    <select id="getCurrentEvent" resultMap="event">
+        SELECT
+        'current' AS ID,
+        'Current Event' AS EVENT_NAME,
+        '' AS DESCRIPTION,
+        '' AS REGION,
+        TRUNC((SYSDATE - 15)) AS START_AT,
+        NULL AS END_AT,
+        NULL AS UPDATED_BY,
+        NULL AS created_at,
+        NULL AS updated_at
+        FROM DUAL
+    </select>
+
+    <select id="getEventWithGenerationsById" parameterType="long" resultMap="eventWithGenerations">
+        SELECT
+        ev.id AS ID,
+        ev.name AS EVENT_NAME,
+        ev.description AS DESCRIPTION,
+        ev.region AS REGION,
+        ev.START_AT AS START_AT,
+        ev.END_AT AS END_AT,
+        ev.updated_by AS UPDATED_BY,
+        ev.created_at AS created_at,
+        ev.updated_at AS updated_at,
+        g.id AS GENERATION_ID,
+        g.timestamp_directory AS GENERATION_TIMESTAMP_DIRECTORY,
+        g.start_at AS GENERATION_START,
+        g.end_at AS GENERATION_END,
+        g.triggered_by AS GENERATION_TRIGGERED_BY,
+        a.id AS ALERT_ID,
+        a.timestamp_directory AS ALERT_TIMESTAMP_DIRECTORY
+        FROM
+        EVENT ev
+        LEFT JOIN EVENT_GENERATION eg ON (ev.ID = eg.EVENT_ID)
+        LEFT JOIN GENERATION g ON (eg.GENERATION_ID = g.ID)
+        LEFT JOIN ALERT_DOCUMENT a ON (g.ALERT_ID = a.ID)
+        WHERE ev.id = #{id}
+        ORDER BY g.start_at DESC
+    </select>
+
+    <select id="getEventWithGenerationsByEvent" parameterType="com.ifactorconsulting.sc.persistence.entity.event.Event" resultMap="eventWithGenerations">
+        SELECT
+        ev.id AS ID,
+        ev.name AS EVENT_NAME,
+        ev.description AS DESCRIPTION,
+        ev.region AS REGION,
+        ev.START_AT AS START_AT,
+        ev.END_AT AS END_AT,
+        ev.updated_by AS UPDATED_BY,
+        ev.created_at AS created_at,
+        ev.updated_at AS updated_at,
+        g.id AS GENERATION_ID,
+        g.timestamp_directory AS GENERATION_TIMESTAMP_DIRECTORY,
+        g.start_at AS GENERATION_START,
+        g.end_at AS GENERATION_END,
+        g.triggered_by AS GENERATION_TRIGGERED_BY,
+        a.id AS ALERT_ID,
+        a.timestamp_directory AS ALERT_TIMESTAMP_DIRECTORY
+        FROM
+        EVENT ev
+        LEFT JOIN EVENT_GENERATION eg ON (ev.ID = eg.EVENT_ID)
+        LEFT JOIN GENERATION g ON (eg.GENERATION_ID = g.ID)
+        LEFT JOIN ALERT_DOCUMENT a ON (g.ALERT_ID = a.ID)
+        WHERE ev.id = #{id}
+        AND g.start_at > #{updatedAt}
+        ORDER BY g.start_at DESC
+    </select>
+
+    <select id="getCurrentEventWithGenerations" resultMap="eventWithGenerations" parameterType="org.joda.time.DateTime">
+        SELECT
+        'current' AS ID,
+        'Current Event' AS EVENT_NAME,
+        '' AS DESCRIPTION,
+        '' AS REGION,
+        TRUNC((SYSDATE - 15)) AS START_AT,
+        '' AS END_AT,
+        '' AS UPDATED_BY,
+        '' AS created_at,
+        '' AS UPDATED_AT,
+        g.id AS GENERATION_ID,
+        g.timestamp_directory AS GENERATION_TIMESTAMP_DIRECTORY,
+        g.start_at AS GENERATION_START,
+        g.end_at AS GENERATION_END,
+        g.triggered_by AS GENERATION_TRIGGERED_BY,
+        a.id AS ALERT_ID,
+        a.timestamp_directory AS ALERT_TIMESTAMP_DIRECTORY
+        FROM
+        GENERATION g
+        LEFT JOIN ALERT_DOCUMENT a ON (g.ALERT_ID = a.ID)
+        WHERE g.start_at > TRUNC((SYSDATE - 15))
+        <if test="timestamp != null">
+            AND g.start_at > #{timestamp, jdbcType=TIMESTAMP, typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler}
+        </if>
+        ORDER BY g.start_at DESC
+    </select>
+
+    <select id="getCurrentEventWithGenerationsWithTimestamp" resultMap="eventWithGenerations">
+        SELECT
+        'current' AS ID,
+        'Current Event' AS EVENT_NAME,
+        '' AS DESCRIPTION,
+        '' AS REGION,
+        TRUNC((SYSDATE - 15)) AS START_AT,
+        '' AS END_AT,
+        '' AS UPDATED_BY,
+        '' AS created_at,
+        '' AS UPDATED_AT,
+        g.id AS GENERATION_ID,
+        g.timestamp_directory AS GENERATION_TIMESTAMP_DIRECTORY,
+        g.start_at AS GENERATION_START,
+        g.end_at AS GENERATION_END,
+        g.triggered_by AS GENERATION_TRIGGERED_BY,
+        a.id AS ALERT_ID,
+        a.timestamp_directory AS ALERT_TIMESTAMP_DIRECTORY
+        FROM
+        GENERATION g
+        LEFT JOIN ALERT_DOCUMENT a ON (g.ALERT_ID = a.ID)
+        WHERE g.start_at > TRUNC((SYSDATE - 15))
+        ORDER BY g.start_at DESC
+    </select>
+
+    <select id="getGenerationsByTypeAndPeriod" resultMap="generation" parameterType="map">
+        SELECT
+        g.id AS ID,
+        g.timestamp_directory AS GENERATION_TIMESTAMP_DIRECTORY,
+        g.start_at AS GENERATION_START,
+        g.end_at AS GENERATION_END,
+        g.triggered_by AS GENERATION_TRIGGERED_BY,
+        a.id AS ALERT_ID,
+        a.timestamp_directory AS ALERT_TIMESTAMP_DIRECTORY
+        FROM
+        GENERATION g
+        LEFT JOIN ALERT_DOCUMENT a ON (g.ALERT_ID = a.ID)
+        <choose>
+            <when test="type != null and type == 'unsaved'">
+                WHERE g.id NOT IN (SELECT GENERATION_ID FROM EVENT_GENERATION)
+                AND g.start_at > TRUNC((SYSDATE - #{period}))
+                AND g.start_at <![CDATA[ <= TRUNC((SYSDATE - 15))]]>
+            </when>
+            <otherwise>
+                WHERE g.id IN (SELECT GENERATION_ID FROM EVENT_GENERATION)
+                AND g.start_at > TRUNC((SYSDATE - #{period}))
+            </otherwise>
+        </choose>
+    </select>
+    <select id="selectGenerationsWithIdArray" parameterType="map" resultType="long">
+        SELECT
+        g.id AS ID
+        FROM
+        EVENT_GENERATION eg
+        LEFT JOIN GENERATION g ON (eg.GENERATION_ID = g.ID)
+        WHERE eg.generation_id in
+        <foreach item="item" index="index" collection="idArray"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </select>
+    <select id="selectLatestAlertId" resultType="long">
+        SELECT
+        MAX(id) AS ID
+        FROM ALERT_DOCUMENT
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <insert id="insertEvent" parameterType="com.ifactorconsulting.sc.persistence.entity.event.Event" useGeneratedKeys="true"
+            keyColumn="id" keyProperty="id">
+        INSERT INTO EVENT(NAME<if test="description != null">, DESCRIPTION</if><if test="region != null">, REGION</if>, START_AT, END_AT<if test="userId != null">, UPDATED_BY</if>, created_at, updated_at)
+        VALUES (#{name}<if test="description != null">,#{description}</if><if test="region != null">,#{region}</if>,#{start, jdbcType=TIMESTAMP, typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler},#{end, jdbcType=TIMESTAMP, typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeConversionTypeHandler}<if test="userId != null">,#{userId}</if>,SYSDATE,SYSDATE)
+    </insert>
+    <insert id="insertGeneration" parameterType="com.ifactorconsulting.sc.persistence.entity.generations.Generation" useGeneratedKeys="true" keyColumn="id"
+            keyProperty="id">
+        INSERT INTO GENERATION(ID,TIMESTAMP_DIRECTORY<if test="triggeredBy != null">,TRIGGERED_BY</if>,START_AT, ALERT_ID)
+        VALUES (generation_id_seq.nextval,#{timestampDirectory}<if test="triggeredBy != null">,#{triggeredBy}</if>,#{start,jdbcType=TIMESTAMP, typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler}, #{alertId})
+    </insert>
+    <insert id="insertEventGenerationWithEvent" parameterType="com.ifactorconsulting.sc.persistence.entity.event.Event">
+        INSERT INTO event_generation(event_id, generation_id)
+          SELECT #{id} as EVENT_ID, g.id as GENERATION_ID
+          FROM generation g
+          WHERE g.start_at > #{start}
+          AND g.start_at <![CDATA[ <= #{end}]]>
+          AND g.id NOT IN (SELECT eg.generation_id FROM EVENT_GENERATION eg WHERE eg.event_id = #{id})
+    </insert>
+    <insert id="insertEventGenerationWithGeneration" parameterType="com.ifactorconsulting.sc.persistence.entity.generations.Generation">
+        INSERT INTO event_generation(event_id, generation_id)
+          SELECT e.id as EVENT_ID, #{id} as GENERATION_ID
+          FROM event e
+          WHERE e.end_at <![CDATA[ >= #{start}]]>
+          AND e.start_at <![CDATA[ < #{start}]]>
+          AND e.id NOT IN (SELECT eg.event_id FROM EVENT_GENERATION eg WHERE eg.generation_id = #{id})
+    </insert>
+    <update id="updatePreviousGenerationEndAt" parameterType="org.joda.time.DateTime">
+        UPDATE GENERATION
+        SET
+        END_AT = #{end,jdbcType=TIMESTAMP,typeHandler=com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler}
+        WHERE id = (SELECT MAX(ID) FROM GENERATION)
+    </update>
+    <update id="updateGenerationAlertId" parameterType="long">
+        UPDATE GENERATION
+        SET
+        ALERT_ID = #{id}
+        WHERE id = (SELECT MAX(ID) FROM GENERATION)
+    </update>
+
+    <update id="updateEvent" parameterType="com.ifactorconsulting.sc.persistence.entity.event.Event">
+        UPDATE EVENT ev
+        SET
+        updated_at = SYSDATE
+        <if test="name != null">, NAME = #{name}</if>
+        , DESCRIPTION = #{description}
+        <if test="region != null">, REGION = #{region}</if>
+        <if test="start != null">, START_AT = #{start}</if>
+        <if test="end != null">, END_AT = #{end}</if>
+        <if test="userId != null">, UPDATED_BY = #{userId}</if>
+        WHERE ev.id = #{id}
+    </update>
+
+    <delete id="deleteEvent" parameterType="long">
+        DELETE FROM
+        EVENT ev
+        WHERE ev.id = #{id}
+    </delete>
+    <delete id="deleteEventGenerationWithEventId" parameterType="long">
+        DELETE FROM
+        EVENT_GENERATION eg
+        WHERE eg.event_id = #{id}
+    </delete>
+    <delete id="deleteEventGenerationWithEvent" parameterType="com.ifactorconsulting.sc.persistence.entity.event.Event">
+        DELETE FROM
+        EVENT_GENERATION eg
+        WHERE eg.event_id = #{id}
+        AND eg.generation_id NOT IN (SELECT g.id FROM GENERATION g WHERE g.start_at > #{start}
+          AND g.start_at <![CDATA[ <= #{end}]]> )
+    </delete>
+    <delete id="deleteEventGenerationsWithIdArray" parameterType="map">
+        DELETE FROM
+        EVENT_GENERATION eg
+        WHERE eg.generation_id in
+        <foreach item="item" index="index" collection="idArray"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+
+    </delete>
+    <delete id="deleteGenerationWithIdArray" parameterType="map">
+        DELETE FROM
+        GENERATION g
+        WHERE g.id in
+        <foreach item="item" index="index" collection="idArray"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

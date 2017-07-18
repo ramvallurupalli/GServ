@@ -1,0 +1,29 @@
+{
+  "servers":{
+        "dev": {
+                "host" : "gulfpower-dev.ifactornotifi.com",
+                "username" : "didi7",
+                "type" : "snapshot",
+                "apps" : ["sc-servlet"]
+            },
+      "test": {
+            "host" : "gulfpower-test.ifactornotifi.com",
+            "username" : "didi7",
+            "type" : "release",
+            "apps" : ["sc-servlet"]
+          },
+      "prod": {
+            "host" : "gulfpower.ifactornotifi.com",
+            "username" : "didi7",
+            "type" : "release",
+            "apps" : ["sc-servlet"]
+          }
+    },
+  "applications": {
+    "sc-servlet": {
+      "artifact": "web-impl",
+      "groupId": "com.ifactorconsulting.sc.gulfpower",
+      "contextPath": "stormcenter"
+    }
+  }
+}

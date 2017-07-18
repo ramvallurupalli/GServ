@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="externalGenerator" abstract="true" class="com.ifactorconsulting.sc.generators.AbstractGenerator"/>
+    <bean id="internalGenerator" abstract="true" class="com.ifactorconsulting.sc.generators.AbstractGenerator"/>
+
+    <!-- THEMATIC TEMPLATES -->
+    <bean id="thematicTemplateCounty" class="com.ifactorconsulting.sc.templates.ThematicTemplateImpl">
+        <property name="thematicTemplateFilePath"
+                  value="#{thematicTemplateCounty.thematicTemplateFilePath}"/>
+    </bean>
+
+    <bean id="s3Deployer" class="com.ifactorconsulting.sc.deployers.concurrent.S3Deployer">
+        <property name="sites">
+            <constructor-arg ref="transferManager"/>
+            <constructor-arg value="${s3.bucketName}"/>
+            <constructor-arg ref="awsCredentials"/>
+            <list>
+                <value>external</value>
+            </list>
+        </property>
+        <property name="order" value="1"/>
+    </bean>
+
+    <bean id="localDeployer" class="com.ifactorconsulting.sc.deployers.LocalDeployer">
+        <property name="sites">
+            <list>
+                <value>internal</value>
+            </list>
+        </property>
+        <property name="order" value="2"/>
+    </bean>
+
+    <!--  COLLECTORS -->
+    <bean id="outageLocationsCollector" class="com.ifactorconsulting.sc.collectors.LocationsCollector">
+        <property name="order" value="100"/>
+        <property name="locationsMapper" ref="outageLocationsMapper"/>
+    </bean>
+    <bean id="thematicCollectorCounty" class="com.ifactorconsulting.sc.collectors.ThematicCollector">
+        <property name="order" value="200"/>
+        <property name="thematicMapper" ref="thematicMapperCounty"/>
+    </bean>
+    <bean id="reportCollectorCounty" class="com.ifactorconsulting.sc.collectors.ReportCollector">
+        <property name="order" value="300"/>
+        <property name="reportMapper" ref="reportMapperCounty"/>
+    </bean>
+    <bean id="summaryCollector" class="com.ifactorconsulting.sc.collectors.SummaryCollector">
+        <property name="order" value="400"/>
+        <property name="summaryMapper" ref="summaryMapper"/>
+    </bean>
+    <bean id="customLayersCollector" class="com.ifactorconsulting.sc.collectors.CustomLayersCollector">
+        <property name="order" value="500"/>
+    </bean>
+
+    <!--  PROCESSORS-->
+    <bean id="outageLocationsProcessor" class="com.ifactorconsulting.sc.processors.LocationsProcessor">
+        <property name="order" value="100"/>
+        <property name="locationsCollector" ref="outageLocationsCollector"/>
+        <property name="clusterDescriptionClass" value="com.ifactorconsulting.sc.domain.ClusterDescription"/>
+        <property name="locationDescriptionClass"
+                  value="com.ifactorconsulting.sc.domain.IndividualOutageLocationDescription"/>
+    </bean>
+    <bean id="thematicProcessorCounty" class="com.ifactorconsulting.sc.processors.ThematicProcessor">
+        <property name="order" value="200"/>
+        <property name="thematicTemplate" ref="thematicTemplateCounty"/>
+        <property name="thematicCollector" ref="thematicCollectorCounty"/>
+        <property name="thematicDescriptionClass" value="com.ifactorconsulting.sc.domain.ThematicDescription"/>
+    </bean>
+    <bean id="reportProcessorCounty" class="com.ifactorconsulting.sc.processors.ReportProcessor">
+        <property name="order" value="300"/>
+        <property name="reportCollector" ref="reportCollectorCounty"/>
+        <property name="reportAreaClass" value="com.ifactorconsulting.sc.domain.ReportArea"/>
+    </bean>
+    <bean id="summaryProcessor" class="com.ifactorconsulting.sc.processors.SummaryProcessor">
+        <property name="order" value="400"/>
+        <property name="summaryCollector" ref="summaryCollector"/>
+        <!--Default value of the 'lastUpdateSource' property is DATA_VERSION_TIMESTAMP-->
+        <!--<property name="lastUpdateSource" value="STORMCENTER_TRIGGER_TIMESTAMP"/>-->
+        <!--<property name="lastUpdateSource" value="DATA_VERSION_TIMESTAMP"/>-->
+    </bean>
+    <bean id="customLayersProcessor" class="com.ifactorconsulting.sc.processors.CustomLayersProcessor">
+        <property name="order" value="500"/>
+        <property name="customLayersCollector" ref="customLayersCollector"/>
+    </bean>
+
+    <!--  GENERATORS -->
+    <bean id="outageLocationsGeneratorExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.LocationsGenerator">
+        <property name="order" value="100"/>
+        <property name="locationsProcessor" ref="outageLocationsProcessor"/>
+        <property name="clusterDescriptionFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.outages.Cluster"/>
+        <property name="locationDescriptionFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.outages.Location"/>
+    </bean>
+    <bean id="outageLocationsGeneratorInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.LocationsGenerator">
+        <property name="order" value="150"/>
+        <property name="locationsProcessor" ref="outageLocationsProcessor"/>
+        <property name="clusterDescriptionFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.outages.Cluster"/>
+        <property name="locationDescriptionFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.outages.Location"/>
+    </bean>
+    <bean id="thematicGeneratorCountyExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.ThematicGenerator">
+        <property name="order" value="200"/>
+        <property name="thematicProcessor" ref="thematicProcessorCounty"/>
+        <property name="includedFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.thematics.County"/>
+    </bean>
+    <bean id="thematicGeneratorCountyInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.ThematicGenerator">
+        <property name="order" value="250"/>
+        <property name="thematicProcessor" ref="thematicProcessorCounty"/>
+        <property name="includedFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.thematics.County"/>
+    </bean>
+    <bean id="reportGeneratorCountyExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.ReportGenerator">
+        <property name="order" value="300"/>
+        <property name="reportProcessor" ref="reportProcessorCounty"/>
+        <property name="reportType" value="county"/>
+        <property name="includedFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.report.Default"/>
+    </bean>
+    <bean id="reportGeneratorCountyInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.ReportGenerator">
+        <property name="order" value="350"/>
+        <property name="reportProcessor" ref="reportProcessorCounty"/>
+        <property name="reportType" value="county"/>
+        <property name="includedFields" value="com.ifactorconsulting.sc.gulfpower.fieldconfig.report.Default"/>
+    </bean>
+    <bean id="summaryGeneratorExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.SummaryGenerator">
+        <property name="order" value="400"/>
+        <property name="summaryProcessor" ref="summaryProcessor"/>
+    </bean>
+    <bean id="summaryGeneratorInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.SummaryGenerator">
+        <property name="order" value="450"/>
+        <property name="summaryProcessor" ref="summaryProcessor"/>
+    </bean>
+    <bean id="customLayersGeneratorExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.CustomLayersGenerator">
+        <property name="order" value="500"/>
+        <property name="customLayersProcessor" ref="customLayersProcessor"/>
+    </bean>
+    <bean id="customLayersGeneratorInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.CustomLayersGenerator">
+        <property name="order" value="550"/>
+        <property name="customLayersProcessor" ref="customLayersProcessor"/>
+    </bean>
+    <bean id="metadataGeneratorExternal" parent="externalGenerator"
+          class="com.ifactorconsulting.sc.generators.MetadataGenerator">
+        <property name="order" value="600"/>
+        <property name="site" value="external"/>
+    </bean>
+    <bean id="metadataGeneratorInternal" parent="internalGenerator"
+          class="com.ifactorconsulting.sc.generators.MetadataGenerator">
+        <property name="order" value="650"/>
+        <property name="site" value="internal"/>
+    </bean>
+
+
+    <!-- PUBLISHERS -->
+    <bean id="alertsPublisherInternal" class="com.ifactorconsulting.sc.publishers.alerts.AlertsFilePublisher">
+        <property name="path" value="/opt/stormcenterdata/internal/alerts"/>
+        <!-- Override defaults -->
+        <!-- <property name="filename" value="alerts.json"/> -->
+        <!-- <property name="metadataFile" value="metadata.xml"/> -->
+    </bean>
+    <bean id="alertsS3PublisherExternal" class="com.ifactorconsulting.sc.publishers.alerts.AlertsS3Publisher">
+        <constructor-arg ref="transferManager"/>
+        <constructor-arg value="${s3.bucketName}"/>
+        <property name="path" value="resources/data/external/alerts"/>
+    </bean>
+
+    <!--====================================== BEGIN: DO NOT DELETE =======================================================================================-->
+
+    <!--The bean 'triggerList' is REQUIRED for storm center to start the default Job and the parent bean must always be "defaultTriggerList"-->
+
+
+      <!-- ======================== triggerList with empty list Example ============================= -->
+    <bean id="triggerList" parent="defaultTriggerList" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list merge="true"/>
+        </property>
+    </bean>
+
+    <!--If an AutoGeneration is needed in an implementation, define another Trigger bean (Eg: intervalProcessTrigger bean defined down below).
+    Declare the new trigger bean as an entry in the 'triggerList' with merge property set to "true"-->
+    <!--If NO AutoGeneration is needed, declare the 'triggerList' with parent="defaultTriggerList" and no entries in the list-->
+   <!--  <bean id="triggerList" parent="defaultTriggerList" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list merge="true">
+                <ref bean="intervalProcessTrigger"/>
+            </list>
+        </property>
+    </bean> -->
+
+    <bean id="intervalProcessTrigger"
+          class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="processTask"/>
+        <property name="cronExpression" value="0/60 0/10 * * * ?"/>
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="forceGenerate" value="true"/>
+                <entry key="jobType" value="Interval Generation"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- ======================== ignorePausePublishBeanIDList with empty list ============================= -->
+    <bean id="ignorePausePublishBeanIDList" parent="defaultIgnorePausePublishBeanIDList"
+          class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list merge="true"/>
+        </property>
+    </bean>
+
+
+    <!-- ======================== ignorePausePublishBeanIDList with list values Example ============================= -->
+    <!--<bean id="ignorePausePublishBeanIDList" parent="defaultIgnorePausePublishBeanIDList"
+          class="org.springframework.beans.factory.config.ListFactoryBean">
+        <property name="sourceList">
+            <list merge="true">
+                <ref bean=""/>
+                <ref bean=""/>
+                <ref bean=""/>
+            </list>
+        </property>
+    </bean>-->
+
+    <!--====================================== END: DO NOT DELETE ======================================================================================== -->
+
+</beans>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ifactorconsulting.sc.persistence.dao.sc.OverwriteMapper">
+
+    <resultMap id="getStormOverwrites" type="com.ifactorconsulting.sc.persistence.entity.overwrites.Overwrite">
+        <id column="ID" property="id"/>
+        <result column="FULLAREANAME" property="name"/>
+        <result column="AREATYPE" property="areaType"/>
+        <result column="CUST_SERVED" property="custServed"/>
+        <result column="OMSETR" property="omsETR" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+        <result column="ETROVERWRITTEN" property="etr"/>
+        <result column="CUSTOMERSAFFECTEDOVERWRITTEN" property="customersAffected"/>
+        <result column="COMMENTOVERWRITTEN" property="comments"/>
+        <result column="OMSCUSTOMERSAFFECTED" property="omsCustomersAffected"/>
+        <result column="LASTUPDATEDUSER" property="lastUpdatedUserName"/>
+        <result column="LASTUPDATED" property="lastUpdated" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+    </resultMap>
+
+    <select id="getOverwrites" parameterType="map" resultMap="getStormOverwrites">
+        SELECT
+            a.id                              AS ID,
+            UPPER(a.name)                     AS FULLAREANAME,
+            a.type                            AS AREATYPE,
+            NVL(a.nbr_cust_served, 0)         AS CUST_SERVED,
+            RES.ETR                           AS OMSETR,
+            NVL(a.est_time_restore_over, '')  AS ETROVERWRITTEN,
+            a.CUSTOMER_MESSAGE                AS COMMENTOVERWRITTEN,
+            a.nbr_cust_affected_over          AS CUSTOMERSAFFECTEDOVERWRITTEN,
+            NVL(RES.CUST_A, 0)                AS OMSCUSTOMERSAFFECTED,
+            a.updated_at                      AS LASTUPDATED,
+            NVL(a.update_user, '')            AS LASTUPDATEDUSER
+        FROM BOH_AREA a
+        LEFT JOIN (<include refid="CommonQueries.areaDetails"/>) RES ON RES.ID = a.ID
+        <if test="areaType != null">
+            WHERE a.type = #{areaType}
+        </if>
+    </select>
+
+    <update id="updateOverwrite" parameterType="com.ifactorconsulting.sc.persistence.entity.overwrites.Overwrite">
+      UPDATE boh_area
+      SET updated_at = SYSDATE
+          , EST_TIME_RESTORE_OVER = #{etr}
+          , NBR_CUST_AFFECTED_OVER = #{customersAffected}
+          , CUSTOMER_MESSAGE = #{comments}
+          , CREW = #{crew}
+          , UPDATE_USER = #{lastUpdatedUserName}
+      WHERE boh_area.id = #{id}
+    </update>
+
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ifactorconsulting.sc.impl.persistence.dao.sc.OutageLocationsMapper">
+    <!--    result maps     -->
+    <resultMap id="locationDataMap" type="com.ifactorconsulting.sc.persistence.OutageLocationRecord">
+        <id column="ID" property="incidentId"/>
+        <result column="LAT_LON_LIST" property="lat_long_list"/>
+        <result column="START_TIME" property="startTime" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+        <result column="ESTIMATED_RESTORATION_TIME" property="estimatedRestorationTime" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+        <result column="CURRENT_CUSTOMERS_TOTAL" property="currentCustomersTotal"/>
+        <result column="CAUSE" property="cause"/>
+        <result column="CUSTOMER_COMMENTS" property="customerComments"/>
+        <result column="CREW_STATUS" property="crewStatus"/>
+    </resultMap>
+
+    <select
+            id="getLocationData"
+            resultMap="locationDataMap"
+            fetchSize="3000">
+
+        <include refid="CommonQueries.outages"/>
+
+    </select>
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ifactorconsulting.sc.persistence.dao.scadmin.SettingsMapper">
+
+    <resultMap id="settingsMap" type="com.ifactorconsulting.sc.persistence.entity.settings.Settings">
+        <id column="ID" property="id"/>
+        <association property="pageModes" javaType="com.ifactorconsulting.sc.persistence.entity.settings.PageModes">
+            <result property="active" column="ACTIVE_MODE"/>
+            <collection property="modes" ofType="com.ifactorconsulting.sc.persistence.entity.settings.PageMode">
+                <result column="MODE_NAME" property="mode"/>
+                <result column="REDIRECT_URL" property="redirectURL"/>
+                <result column="PAUSE_PUBLISH" property="pausePublish"/>
+            </collection>
+        </association>
+        <collection property="updateWordingList" ofType="com.ifactorconsulting.sc.persistence.entity.settings.UpdateWording">
+            <result column="language_code" property="languageCode"/>
+            <result column="wording" property="wording"/>
+        </collection>
+        <collection property="schedulers" ofType="com.ifactorconsulting.sc.persistence.entity.settings.Scheduler">
+            <result column="JOB_TYPE" property="jobType"/>
+            <result column="SECONDS" property="seconds"/>
+        </collection>
+    </resultMap>
+
+    <insert id="insertSettings" parameterType="java.lang.String" useGeneratedKeys="true">
+        INSERT INTO SETTINGS(ACTIVE_PAGE_MODE,created_by, created_at)
+        VALUES (#{activePageMode}, #{userId},SYSDATE)
+    </insert>
+    <insert id="insertPageMode" parameterType="map" >
+        INSERT INTO PAGE_MODE(MODE_NAME,REDIRECT_URL,PAUSE_PUBLISH, SETTINGS_ID)
+        VALUES(#{pageMode.mode},#{pageMode.redirectURL},#{pageMode.pausePublish},(SELECT MAX(ID) FROM SETTINGS))
+    </insert>
+    <insert id="insertUpdateWording" parameterType="map">
+        INSERT INTO UPDATE_WORDING(language_code, WORDING, SETTINGS_ID)
+        VALUES(#{languageCode},#{wording},(SELECT MAX(ID) FROM SETTINGS))
+    </insert>
+    <insert id="insertScheduler" parameterType="map">
+        INSERT INTO SCHEDULER(JOB_TYPE, SECONDS, SETTINGS_ID)
+        VALUES(#{jobType},#{seconds},(SELECT MAX(ID) FROM SETTINGS))
+    </insert>
+    <select id="getSettings" resultMap="settingsMap">
+        SELECT
+        s.ID AS ID,
+        TRIM(s.ACTIVE_PAGE_MODE) AS ACTIVE_MODE,
+        TRIM(uw.language_code) AS language_code,
+        TRIM(uw.wording) AS wording,
+        TRIM(pm.MODE_NAME) AS MODE_NAME,
+        TRIM(pm.REDIRECT_URL) AS REDIRECT_URL,
+        pm.PAUSE_PUBLISH AS PAUSE_PUBLISH,
+        TRIM(sc.JOB_TYPE) AS JOB_TYPE,
+        sc.SECONDS AS SECONDS
+        FROM SETTINGS s
+        LEFT JOIN UPDATE_WORDING uw ON (s.id = uw.settings_id)
+        LEFT JOIN PAGE_MODE pm ON (s.id = pm.settings_id)
+        LEFT JOIN SCHEDULER sc ON (s.id = sc.settings_id)
+        WHERE s.id = (SELECT MAX(ID) FROM SETTINGS)
+    </select>
+
+</mapper>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.ifactorconsulting.sc.gulfpower</groupId>
+    <artifactId>sc-servlet</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>sc-servlet</name>
+    <description>Storm Center Servlet Implementation</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <energysuite-nexus.base.url>http://dev.ifactornotifi.com</energysuite-nexus.base.url>
+        <java.version>1.7</java.version>
+        <junit.version>4.12</junit.version>
+        <servlet-api.version>3.0.1</servlet-api.version>
+        <sc-servlet.version>4.11.3</sc-servlet.version>
+        <tomcat-jdbc.version>7.0.47</tomcat-jdbc.version>
+        <ojdbc6.version>11.2.0.3</ojdbc6.version>
+        <maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>
+        <maven-release-plugin.version>2.5.2</maven-release-plugin.version>
+        <maven-scm-provider-gitexe.version>1.8.1</maven-scm-provider-gitexe.version>
+        <versions-maven-plugin.version>2.1</versions-maven-plugin.version>
+    </properties>
+
+    <scm>
+        <url>https://github.com/iFactor/gulfpower-sc-servlet</url>
+        <developerConnection>scm:git:git@github.com:iFactor/gulfpower-sc-servlet.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <modules>
+        <module>impl</module>
+        <module>web-impl</module>
+    </modules>
+
+    <distributionManagement>
+        <!-- Publish releases here -->
+        <repository>
+            <id>energysuite-nexus</id>
+            <name>Energy Suit Nexus</name>
+            <url>${energysuite-nexus.base.url}/nexus/content/repositories/releases</url>
+        </repository>
+
+        <!-- Publish snapshots here -->
+        <snapshotRepository>
+            <id>energysuite-nexus</id>
+            <name>Energy Suit Nexus</name>
+            <url>${energysuite-nexus.base.url}/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+      <repository>
+          <id>energysuite-nexus</id>
+          <name>Energy Suit artifacts</name>
+          <url>${energysuite-nexus.base.url}/nexus/content/groups/public</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
+      <repository>
+          <id>osgeo</id>
+          <name>Open Source Geospatial Foundation Repository</name>
+          <url>http://download.osgeo.org/webdav/geotools/</url>
+      </repository>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>boundless</id>
+            <name>Boundless Maven Repository</name>
+            <url>http://repo.boundlessgeo.com/main</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${servlet-api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.ifactorconsulting.sc</groupId>
+                <artifactId>web</artifactId>
+                <version>${sc-servlet.version}</version>
+                <classifier>classes</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.ifactorconsulting.sc</groupId>
+                <artifactId>web</artifactId>
+                <version>${sc-servlet.version}</version>
+                <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>com.ifactorconsulting.sc</groupId>
+                <artifactId>persistence</artifactId>
+                <version>${sc-servlet.version}</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat</groupId>
+                <artifactId>tomcat-jdbc</artifactId>
+                <version>${tomcat-jdbc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${maven-scm-provider-gitexe.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+</project>

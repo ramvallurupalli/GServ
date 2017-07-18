@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <settings>
+        <setting name="jdbcTypeForNull" value="NULL"/>
+    </settings>
+    <mappers>
+        <mapper resource="maps/CommonQueries.xml"/>
+        <mapper resource="maps/DataVersionMapper.xml"/>
+        <mapper resource="maps/SummaryMapper.xml"/>
+        <mapper resource="maps/ThematicMapperCounty.xml"/>
+        <mapper resource="maps/ThematicMapperZip.xml"/>
+        <mapper resource="maps/ReportMapperCounty.xml"/>
+        <mapper resource="maps/ReportMapperZip.xml"/>
+        <mapper resource="maps/OutageLocationsMapper.xml"/>
+        <mapper resource="maps/OverwriteMapper.xml"/>
+        <mapper resource="maps/EventGenerationMapper.xml"/>
+        <mapper resource="maps/SettingsMapper.xml"/>
+        <mapper resource="maps/AlertMapper.xml"/>
+    </mappers>
+</configuration>

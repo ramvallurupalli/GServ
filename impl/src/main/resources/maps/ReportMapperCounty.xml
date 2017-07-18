@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ifactorconsulting.sc.impl.persistence.dao.sc.ReportMapperCounty">
+    <!--    result maps     -->
+    <resultMap id="countyReportDataMap" type="com.ifactorconsulting.sc.persistence.ReportDataRecord">
+        <result column="AREANAME1" property="areaName"/>
+        <collection property="areas" javaType="java.util.ArrayList"
+                    ofType="com.ifactorconsulting.sc.persistence.ReportDataRecord">
+            <result column="AREANAME2" property="areaName"/>
+            <result column="CUST_S" property="customersServed"/>
+            <result column="CUST_A" property="numCustomersOut"/>
+            <result column="ETR" property="estimatedRestoration" jdbcType="TIMESTAMP"
+                    typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+            <result column="ETR_OVERWRITTEN2" property="estimatedRestorationOverwritten"/>
+            <result column="CA_OVERWRITTEN2" jdbcType="NUMERIC" javaType="java.lang.Long" property="customersAffectedOverwritten"/>
+        </collection>
+    </resultMap>
+
+    <select id="getReportData" resultMap="countyReportDataMap">
+        SELECT
+            UPPER('gulfpower') AS AREANAME1,
+            UPPER(county.name)              AS AREANAME2,
+            NVL(county.nbr_cust_served, 0)  AS CUST_S,
+            NVL(RES.CUST_A, 0)              AS CUST_A,
+            MAX(RES.ETR)                    AS ETR,
+            county.est_time_restore_over    AS ETR_OVERWRITTEN2,
+            county.nbr_cust_affected_over   AS CA_OVERWRITTEN2
+        FROM boh_area county
+            LEFT JOIN (<include refid="CommonQueries.areaDetails"/>) RES ON RES.ID = county.ID
+        WHERE
+            UPPER(county.type) = 'COUNTY' AND
+            county.removed = '0'
+        GROUP BY
+            county.name, county.nbr_cust_served,RES.CUST_A,county.est_time_restore_over,
+            county.nbr_cust_affected_over
+        ORDER BY
+            county.name
+    </select>
+</mapper>

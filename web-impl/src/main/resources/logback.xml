@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+    <insertFromJNDI env-entry-name="java:comp/env/logging/servletName" as="servletName"/>
+
+    <appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <if condition='property("servletName").equals("")'>
+            <then>
+                <file>${catalina.base}/logs/stormcenter.log</file>
+            </then>
+            <else>
+                <file>${catalina.base}/logs/${servletName}/stormcenter.log</file>
+            </else>
+        </if>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <if condition='property("servletName").equals("")'>
+                <then>
+                    <fileNamePattern>${catalina.base}/logs/stormcenter.%i.log</fileNamePattern>
+                </then>
+                <else>
+                    <fileNamePattern>${catalina.base}/logs/${servletName}/stormcenter.%i.log</fileNamePattern>
+                </else>
+            </if>
+            <minIndex>1</minIndex>
+            <maxIndex>3</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>5MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>[%d{dd MMM yyyy HH:mm:ss}] %-5level %logger:%L - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <if condition='property("servletName").equals("")'>
+                <then>
+                    <pattern>STORMCENTER --> [%d{dd MMM yyyy HH:mm:ss}] %-5level %logger:%L - %msg%n</pattern>
+                </then>
+                <else>
+                    <pattern>STORMCENTER\(${servletName}\) --> [%d{dd MMM yyyy HH:mm:ss}] %-5level %logger:%L - %msg%n
+                    </pattern>
+                </else>
+            </if>
+        </encoder>
+    </appender>
+
+    <logger name="com.ifactorconsulting.sc.tasks.FetchDataVersion">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.tasks.FetchData">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.tasks.ProcessData">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.tasks.WriteData">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.tasks.DeployData">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.jobs.PublishData">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.deployers.AbstractDeployer">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.deployers.LocalDeployer">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.deployers.S3Deployer">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.deployers.concurrent.S3Deployer">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.fileutil.S3Utilities">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.s3util.concurrent.ConcurrentS3Uploader">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.services.generation.GenerationService">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.jobs.StartupLogger">
+        <level value="INFO"/>
+    </logger>
+
+    <!-- Begin:  ES Admin Audit Logging.  -->
+    <logger name="com.ifactorconsulting.sc.controllers.alerts.AlertsController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.customlayers.CustomLayersController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.eventhistory.EventHistoryController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.generation.GenerationController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.overwrite.OverwriteController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.settings.SettingsController">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.ifactorconsulting.sc.controllers.settings.SettingsControllerV2">
+        <level value="INFO"/>
+    </logger>
+    <!-- End:  ES Admin Audit Logging.  -->
+
+
+    <root level="WARN">
+        <appender-ref ref="logfile"/>
+        <appender-ref ref="stdout"/>
+    </root>
+
+</configuration>
+

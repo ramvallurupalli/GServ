@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<graph bgColor="F1F1F1" caption="Customers Affected By Date" showvalues="0" limitsDecimalPrecision="0"
+       decimalPrecision="0" xAxisName="Date" PYAxisName="Number of Customers" SYAxisName="Number of Outages"
+       showLegend="1" PYAxisMaxValue="6" SYAxisMaxValue="6" showNames="1" showToolTip="0" rotateNames="1">
+    <categories>
+    </categories>
+    <dataset seriesname="Customers" showvalues="0" color="#8ECC51" parentYAxis="P">
+    </dataset>
+    <dataset seriesname="Outages" showvalues="0" color="#FF8000" parentYAxis="S" lineThickness="4">
+    </dataset>
+</graph>

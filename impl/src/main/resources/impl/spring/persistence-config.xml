@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:component-scan base-package="com.ifactorconsulting.sc.gulfpower"/>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ifactorconsulting.sc.gulfpower.persistence.dao"/>
+        <property name="annotationClass" value="org.springframework.stereotype.Repository"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource"
+          p:driverClassName="${bigoh.datasource.driverClassName}"
+          p:url="${bigoh.datasource.url}"
+          p:username="${bigoh.datasource.username}"
+          p:password="${bigoh.datasource.password}"
+          p:initialSize="${bigoh.datasource.initialSize}"
+          p:maxActive="${bigoh.datasource.maxActive}"
+          p:validationQuery="${bigoh.datasource.validationQuery}"
+          p:validationInterval="${bigoh.datasource.validationInterval}"
+          p:testOnBorrow="${bigoh.datasource.testOnBorrow}">
+    </bean>
+    <bean id="dataSourceSc" class="org.apache.tomcat.jdbc.pool.DataSource"
+          p:driverClassName="${sc.datasource.driverClassName}"
+          p:url="${sc.datasource.url}"
+          p:username="${sc.datasource.username}"
+          p:password="${sc.datasource.password}"
+          p:initialSize="${sc.datasource.initialSize}"
+          p:maxActive="${sc.datasource.maxActive}"
+          p:validationQuery="${sc.datasource.validationQuery}"
+          p:validationInterval="${sc.datasource.validationInterval}"
+          p:testOnBorrow="${sc.datasource.testOnBorrow}">
+    </bean>
+
+</beans>

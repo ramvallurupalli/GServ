@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ifactorconsulting.sc.persistence.dao.scadmin.AlertMapper">
+
+    <resultMap id="alertsDocumentMap" type="com.ifactorconsulting.sc.persistence.entity.alerts.AlertsDocument">
+        <id column="ID" property="id"/>
+        <result property="selectedAlertId" column="SELECTED_ALERT_ID"/>
+        <result property="timestampDirectory" column="TIMESTAMP_DIRECTORY"/>
+        <result property="createdBy" column="CREATED_BY"/>
+        <result property="visible" column="IS_VISIBLE"/>
+        <collection property="alerts" ofType="com.ifactorconsulting.sc.persistence.entity.alerts.Alert">
+            <id column="ALERT_ID" property="refId"/>
+            <collection property="alertData" ofType="com.ifactorconsulting.sc.persistence.entity.alerts.AlertData">
+                <result column="language_code" property="languageCode"/>
+                <result column="BANNER_TITLE" property="bannerTitle"/>
+                <result column="LONG_TEXT" property="longText"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+
+    <insert id="insertAlertsDocument" parameterType="com.ifactorconsulting.sc.persistence.entity.alerts.AlertsDocument" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO ALERT_DOCUMENT(SELECTED_ALERT_ID, TIMESTAMP_DIRECTORY, IS_VISIBLE, created_by, created_at)
+        VALUES (#{selectedAlertId},#{timestampDirectory},#{visible}, #{createdBy},SYSDATE)
+
+    </insert>
+    <insert id="insertAlert" parameterType="map" useGeneratedKeys="true" keyProperty="alert.id" keyColumn="id">
+        INSERT INTO ALERT(ALERT_DOCUMENT_ID, REF_ID)
+        VALUES(#{alertsDocumentId}, #{alert.refId})
+    </insert>
+    <insert id="insertAlertData" parameterType="map">
+        INSERT INTO ALERT_DATA(language_code, BANNER_TITLE,LONG_TEXT, ALERT_ID)
+        VALUES(#{alertData.languageCode},#{alertData.bannerTitle},#{alertData.longText}, #{alertId})
+    </insert>
+    <select id="getAlertsDocument" resultMap="alertsDocumentMap">
+        SELECT
+        ad.ID AS ID,
+        ad.selected_alert_id AS SELECTED_ALERT_ID,
+        ad.created_by as CREATED_BY,
+        ad.timestamp_directory AS TIMESTAMP_DIRECTORY,
+        ad.is_visible AS IS_VISIBLE,
+        a.REF_ID AS ALERT_ID,
+        TRIM(adat.language_code) AS language_code,
+        TRIM(adat.BANNER_TITLE) AS BANNER_TITLE,
+        TRIM(adat.LONG_TEXT) AS LONG_TEXT
+        FROM ALERT_DOCUMENT ad
+        LEFT JOIN ALERT a ON (ad.id = a.alert_document_id)
+        LEFT JOIN ALERT_DATA adat ON (a.id = adat.alert_id)
+        WHERE ad.id = (SELECT MAX(ID) FROM ALERT_DOCUMENT)
+    </select>
+
+</mapper>

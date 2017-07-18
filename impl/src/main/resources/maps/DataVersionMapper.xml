@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ifactorconsulting.sc.persistence.dao.sc.DataVersionMapper">
+    <!--    result maps     -->
+    <resultMap id="latestDataVersion" type="com.ifactorconsulting.sc.persistence.DataVersionRecord">
+        <result column="VERSION" property="version"/>
+        <result column="PUBLISHED_AT" property="publishedAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+        <result column="GENERATED_AT" property="generatedAt" jdbcType="TIMESTAMP"
+                typeHandler="com.ifactorconsulting.sc.datetimeutil.DateTimeTypeHandler"/>
+    </resultMap>
+
+    <select id="getLatestVersionInfo" resultMap="latestDataVersion">
+        SELECT
+          ID                AS VERSION,
+          PUBLISHED_AT      AS PUBLISHED_AT,
+          GENERATED_AT      AS GENERATED_AT
+        FROM BOH_LATEST_VERSION_OUTAGE
+    </select>
+</mapper>
